@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <title>My Dashboard – {{ worker_name }}</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      /* Red Theme (Matches login.html) */
+      --primary: #ff3131;
+      --primary-light: #ff6666;
+
+      /* Dark Theme */
+      --bg: #000000;
+      --card-bg: #0a0a0a;
+      --panel-bg: #0a0a0a;
+      --border: rgba(255, 255, 255, 0.08);
+      --input-bg: #121212;
+      --text: #ffffff;
+      --text-muted: #a1a1aa;
+
+      --success: #10b981;
+      --danger: #ff3131;
+      --info: #3b82f6;
+
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Light Theme Override */
+    body.theme-light {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --panel-bg: #ffffff;
+      --border: #e2e8f0;
+      --input-bg: #f1f5f9;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      font-family: 'Poppins', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 40px;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top right,
+          rgba(255, 49, 49, 0.08), transparent 50%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* Header */
+    .header {
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    @media (max-width: 480px) {
+      .header {
+        padding: 16px;
+      }
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-brand .icon {
+      font-size: 26px;
+      color: var(--primary);
+      filter: drop-shadow(0 0 10px rgba(255, 49, 49, 0.4));
+    }
+
+    .header-brand h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 20px;
+      color: var(--text);
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      text-transform: uppercase;
+    }
+
+    .header-brand p {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 700;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    @media (max-width: 640px) {
+      .header-right {
+        gap: 8px;
+      }
+
+      .worker-badge,
+      .logout-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+      }
+
+      .header-brand h1 {
+        font-size: 16px;
+      }
+    }
+
+    .worker-badge {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .logout-btn {
+      background: rgba(255, 49, 49, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(255, 49, 49, 0.2);
+      border-radius: 12px;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .logout-btn:hover {
+      background: var(--danger);
+      color: white;
+      box-shadow: 0 4px 15px rgba(255, 49, 49, 0.3);
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      padding: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+        padding: 20px;
+        gap: 16px;
+      }
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 32px;
+      padding: 32px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 0 1px rgba(167, 5, 5, 0.08);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--primary);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-card .val {
+      font-size: 40px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.1;
+    }
+
+    .stat-card .lbl {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 800;
+    }
+
+    /* Add Job Button */
+    .add-btn-wrap {
+      padding: 0 24px 24px;
+    }
+
+    @media (max-width: 768px) {
+      .add-btn-wrap {
+        padding: 0 20px 20px;
+      }
+    }
+
+    .add-btn {
+      width: 100%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 22px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: 'Poppins', sans-serif;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(255, 49, 49, 0.3);
+      text-transform: uppercase;
+    }
+
+    .add-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(255, 49, 49, 0.4);
+      background: var(--primary-light);
+    }
+
+    .add-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* Jobs List */
+    .section {
+      padding: 0 24px 24px;
+    }
+
+    @media (max-width: 768px) {
+      .section {
+        padding: 0 20px 20px;
+      }
+    }
+
+    .section-title {
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      font-weight: 800;
+    }
+
+    .job-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      animation: fadeIn 0.4s ease;
+      transition: all 0.2s;
+    }
+
+    .job-card:hover {
+      transform: scale(1.02);
+      border-color: var(--primary);
+      background: rgba(255, 49, 49, 0.02);
+    }
+
+    @media (max-width: 480px) {
+      .job-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .job-info {
+      flex: 1;
+    }
+
+    .job-service {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .job-meta {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    .job-price {
+      font-size: 26px;
+      color: var(--success);
+      font-weight: 800;
+      margin-right: 20px;
+    }
+
+    .job-del {
+      background: rgba(255, 49, 49, 0.08);
+      border: 1px solid rgba(255, 49, 49, 0.15);
+      color: var(--danger);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .job-del:hover {
+      background: var(--danger);
+      color: white;
+      box-shadow: 0 4px 15px rgba(255, 49, 49, 0.3);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 80px 24px;
+      color: var(--text-muted);
+      background: var(--card-bg);
+      border-radius: 32px;
+      border: 1px dashed var(--border);
+    }
+
+    .empty-state .icon {
+      font-size: 72px;
+      margin-bottom: 24px;
+      opacity: 0.1;
+    }
+
+    .payment-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .payment-badge.card {
+      background: rgba(255, 49, 49, 0.1);
+      border-color: rgba(255, 49, 49, 0.2);
+      color: var(--primary);
+    }
+
+    /* Modal - Professional Redesign */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+      animation: fadeOverlay 0.3s ease;
+    }
+
+    @keyframes fadeOverlay {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .modal {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    @keyframes modalPop {
+      from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .modal-handle {
+      display: none;
+      width: 40px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 auto 24px;
+    }
+
+    /* Mobile Bottom Sheet Style */
+    @media (max-width: 640px) {
+      .modal-overlay {
+        align-items: flex-end;
+        padding: 0;
+      }
+
+      .modal {
+        border-radius: 32px 32px 0 0;
+        padding: 24px 24px 40px;
+        max-width: 100%;
+        animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .modal-handle {
+        display: block;
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(100%);
+      }
+
+      to {
+        transform: translateY(0);
+      }
+    }
+
+    .modal h2 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 24px;
+      color: var(--text);
+      margin-bottom: 28px;
+      font-weight: 800;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+    }
+
+    .field {
+      margin-bottom: 24px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      color: var(--text);
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
+      transition: all 0.2s;
+      outline: none;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--primary);
+      background: var(--card-bg);
+      box-shadow: 0 0 0 4px rgba(255, 49, 49, 0.1);
+    }
+
+    /* Custom Select Arrow & Options Fix */
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      background-size: 16px;
+      padding-right: 48px;
+      cursor: pointer;
+    }
+
+    select option {
+      background-color: var(--card-bg);
+      color: var(--text);
+      padding: 10px;
+    }
+
+    .price-quick {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .price-quick button {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--primary);
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 700;
+    }
+
+    .price-quick button:hover {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .pay-methods {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .pay-opt {
+      background: var(--input-bg);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .pay-opt:hover {
+      border-color: var(--text-muted);
+    }
+
+    .pay-opt.active {
+      border-color: var(--primary);
+      color: #fff;
+      background: var(--primary);
+      box-shadow: 0 4px 15px rgba(255, 49, 49, 0.3);
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      padding: 18px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 12px;
+      font-family: 'Poppins', sans-serif;
+      box-shadow: 0 10px 25px rgba(255, 49, 49, 0.25);
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .cancel-btn {
+      width: 100%;
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 12px;
+      font-family: 'Poppins', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .btn {
+      width: 100%;
+      background: var(--input-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 15px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 12px;
+      font-family: 'Poppins', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .btn:hover,
+    .cancel-btn:hover {
+      background: var(--card-bg);
+      border-color: var(--text);
+      color: var(--text);
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      background: var(--primary-light);
+      box-shadow: 0 15px 35px rgba(255, 49, 49, 0.35);
+    }
+
+    .theme-toggle-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .theme-toggle-btn:hover {
+      background: rgba(255, 49, 49, 0.1);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--success);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 16px;
+      font-weight: 800;
+      font-size: 15px;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 999;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast.error {
+      background: var(--danger);
+    }
+  </style>
+  <script>
+    function initTheme() {
+      // Default theme is LIGHT
+      const saved = localStorage.getItem('appTheme') || 'light';
+
+      if (saved === 'light') {
+        document.body.classList.add('theme-light');
+      } else {
+        document.body.classList.remove('theme-light');
+      }
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('theme-light');
+      const isLight = document.body.classList.contains('theme-light');
+      localStorage.setItem('appTheme', isLight ? 'light' : 'dark');
+    }
+
+    // Run after DOM loads (recommended)
+    document.addEventListener('DOMContentLoaded', initTheme);
+  </script>
+</head>
+
+<body>
+
+  <div class="header">
+    <div class="header-brand">
+      <span class="icon">✂</span>
+      <div>
+        <h1>{{ shop_name }}</h1>
+        <p>Worker Portal</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode"
+        style="border:none; padding:8px;">🌓 Toggle Theme</button>
+      <span class="worker-badge">{{ worker_name }}</span>
+      <button class="worker-badge" onclick="openSettings()"
+        style="background:rgba(255,49,49,0.15);border:1px solid rgba(255,49,49,0.3);cursor:pointer;">⚙
+        Settings</button>
+      {% if worker_role == 'admin' %}
+      <a href="/dashboard"
+        style="color:var(--primary);font-size:12px;text-decoration:none;border:1px solid rgba(255,49,49,0.3);padding:7px 10px;border-radius:8px;">Back</a>
+      {% endif %}
+      <a href="/logout" class="logout-btn">Log Out</a>
+
+
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="val" id="statEarnings">{{ currency }}{{ "%.0f"|format(today_earnings) }}</div>
+      <div class="lbl">Today's Earnings</div>
+    </div>
+    <div class="stat-card">
+      <div class="val" id="statJobs">{{ today_count }}</div>
+      <div class="lbl">Jobs Done</div>
+    </div>
+  </div>
+
+  <div class="add-btn-wrap" style="display: flex; gap: 12px;">
+    <button class="add-btn" onclick="openModal()" style="flex: 2;">
+      <span>+</span> Log New Job
+    </button>
+    <button class="add-btn" onclick="openPayoutModal()"
+      style="flex: 1; background: var(--info); box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);">
+      <span>💸</span> Payout
+    </button>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Today's Work – {{ today }}</div>
+    <div id="jobsList">
+      {% if today_jobs %}
+      {% for job in today_jobs %}
+      <div class="job-card" id="job-{{ job.id }}">
+        <div class="job-info">
+          <div class="job-service">
+            {{ job.service_name or job.custom_service or 'Service' }}
+            <span class="payment-badge {{ 'card' if job.payment_method == 'card' else '' }}">{{ job.payment_method
+              }}</span>
+          </div>
+          <div class="job-meta">
+            {{ job.customer_name or 'Walk-in' }} · {{ job.created_at[11:16] }}
+            {% if job.notes %} · {{ job.notes }}{% endif %}
+          </div>
+        </div>
+        <div class="job-price">{{ currency }}{{ "%.0f"|format(job.price) }}</div>
+        <div style="display:flex; gap:8px;">
+          <button class="job-del print-btn-ui" data-id="{{job.id}}"
+            data-service="{{job.service_name or job.custom_service}}" data-customer="{{job.customer_name or 'Walk-in'}}"
+            data-price="{{job.price}}" data-payment="{{job.payment_method}}" data-time="{{job.created_at[11:16]}}"
+            style="background:rgba(59,130,246,0.1); color:var(--info); border-color:rgba(59,130,246,0.2);"
+            onclick="handlePrint(this)">⎙</button>
+          <button class="job-del" onclick="deleteJob({{ job.id }})">✕</button>
+        </div>
+      </div>
+      {% endfor %}
+      {% else %}
+      <div class="empty-state">
+        <div class="icon">✂</div>
+        <div>No jobs logged yet today.</div>
+        <div style="margin-top:8px;font-size:13px;">Tap "Log New Job" to get started!</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Add Job Modal -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <h2>Log a Job</h2>
+
+      <div class="field">
+        <label>Service</label>
+        <select id="serviceSelect" onchange="onServiceChange()">
+          <option value="">-- Select Service --</option>
+          {% for s in services %}
+          <option value="{{ s.id }}" data-price="{{ s.price }}">{{ s.name }} – {{ currency }}{{ "%.0f"|format(s.price)
+            }}</option>
+          {% endfor %}
+          <option value="custom">Custom / Other</option>
+        </select>
+      </div>
+
+      <div class="field" id="customServiceField" style="display:none">
+        <label>Custom Service Name</label>
+        <input type="text" id="customServiceName" placeholder="e.g. Special Treatment">
+      </div>
+
+      <div class="field">
+        <label>Customer Name (Optional)</label>
+        <input type="text" id="customerName" placeholder="Walk-in">
+      </div>
+
+      <div class="field">
+        <label>Price ({{ currency }})</label>
+        <input type="number" id="priceInput" placeholder="0" min="0" inputmode="decimal">
+        <div class="price-quick" id="quickPrices"></div>
+      </div>
+
+      <div class="field">
+        <label>Payment Method</label>
+        <div class="pay-methods">
+          <div class="pay-opt active" onclick="setPayment('cash',this)">💵 Cash</div>
+          <div class="pay-opt" onclick="setPayment('card',this)">💳 Card</div>
+          <div class="pay-opt" onclick="setPayment('online',this)">📱 Online</div>
+          <div class="pay-opt" onclick="setPayment('other',this)">🔄 Other</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Notes (Optional)</label>
+        <input type="text" id="jobNotes" placeholder="Any notes...">
+      </div>
+
+      <button class="submit-btn" onclick="submitJob()">✓ Save Job</button>
+      <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Payout Modal -->
+  <div class="modal-overlay" id="payoutModal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <h2>Record Payout</h2>
+      <p style="text-align: center; color: var(--text-muted); font-size: 13px; margin-bottom: 24px;">Use this to record
+        when you take your daily or monthly salary.</p>
+
+      <div class="field">
+        <label>Amount ({{ currency }})</label>
+        <input type="number" id="payoutAmount" placeholder="0" min="0" inputmode="decimal">
+      </div>
+
+      <div class="field">
+        <label>Period</label>
+        <select id="payoutPeriod">
+          <option value="daily">Daily Salary</option>
+          <option value="weekly">Weekly Salary</option>
+          <option value="monthly">Monthly Salary</option>
+          <option value="advance">Advance</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Notes (Optional)</label>
+        <input type="text" id="payoutNotes" placeholder="e.g. For February">
+      </div>
+
+      <button class="submit-btn" onclick="submitPayout()" style="background: var(--info);">✓ Save Payout</button>
+      <button class="cancel-btn" onclick="closePayoutModal()">Cancel</button>
+    </div>
+  </div>
+
+  <div class="section" id="payoutsSection" style="display: none;">
+    <div class="section-title">Recent Payouts</div>
+    <div id="payoutsList"></div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <h2>Settings</h2>
+
+      <div style="border-bottom: 1px solid var(--border); padding: 16px 0;">
+        <div
+          style="font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">
+          Worker Profile</div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--text);" id="profileName">{{ worker_name }}</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Role: <span id="profileRole">{{
+            worker_role }}</span></div>
+        <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <input id="profilePhone" placeholder="Phone"
+            style="padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);"
+            value="">
+          <input id="profileEmail" placeholder="Email"
+            style="padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);"
+            value="">
+        </div>
+        <div style="margin-top:8px;">
+          <input id="profileAddress" placeholder="Address"
+            style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);"
+            value="">
+        </div>
+      </div>
+
+      <h3 style="margin: 20px 0 16px; font-size: 14px; color: var(--text);">Change PIN</h3>
+
+      <div class="field">
+        <label>Current PIN</label>
+        <input type="password" id="currentPin" placeholder="Enter current PIN" inputmode="numeric">
+      </div>
+
+      <div class="field">
+        <label>New PIN</label>
+        <input type="password" id="newPin" placeholder="Enter new PIN (min 4 digits)" inputmode="numeric">
+      </div>
+
+      <div class="field">
+        <label>Confirm PIN</label>
+        <input type="password" id="confirmPin" placeholder="Confirm new PIN" inputmode="numeric">
+      </div>
+
+      <button class="submit-btn" onclick="changePin()">✓ Change PIN</button>
+      <button class="btn" style="margin-top:12px;" onclick="updateProfile()">Save Profile</button>
+
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button class="btn" onclick="printJobs()">Print Jobs</button>
+        <button class="btn" onclick="exportJobsCSV()">Export CSV</button>
+        <button class="btn" onclick="sendSummaryEmail()">Send Email</button>
+      </div>
+
+      <h3 style="margin: 20px 0 16px; font-size: 14px; color: var(--text);">Statistics</h3>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+        <div style="background: rgba(255,49,49,0.1); border-radius: 10px; padding: 12px; text-align: center;">
+          <div style="font-size: 14px; color: var(--primary); font-weight: 700;" id="statsToday">-</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Today</div>
+        </div>
+        <div style="background: rgba(255,49,49,0.1); border-radius: 10px; padding: 12px; text-align: center;">
+          <div style="font-size: 14px; color: var(--primary); font-weight: 700;" id="statsWeek">-</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">This Week</div>
+        </div>
+      </div>
+
+      <button class="cancel-btn" onclick="closeSettings()">Close</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const CURRENCY = "{{ currency }}";
+    let paymentMethod = 'cash';
+    let totalEarnings = {{ today_earnings }};
+    let totalJobs = {{ today_count }};
+
+    function openSettings() {
+      document.getElementById('settingsModal').classList.add('show');
+      loadWorkerStats();
+      // populate profile fields
+      fetch('/api/worker/profile').then(r => r.json()).then(j => {
+        if (j.success && j.worker) {
+          document.getElementById('profileName').textContent = j.worker.name || document.getElementById('profileName').textContent;
+          document.getElementById('profilePhone').value = j.worker.phone || '';
+          document.getElementById('profileEmail').value = j.worker.email || '';
+          document.getElementById('profileAddress').value = j.worker.address || '';
+        }
+      }).catch(() => { });
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsModal').classList.remove('show');
+      // Clear pin fields
+      document.getElementById('currentPin').value = '';
+      document.getElementById('newPin').value = '';
+      document.getElementById('confirmPin').value = '';
+    }
+
+    document.getElementById('settingsModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('settingsModal')) closeSettings();
+    });
+
+    async function changePin() {
+      const currentPin = document.getElementById('currentPin').value.trim();
+      const newPin = document.getElementById('newPin').value.trim();
+      const confirmPin = document.getElementById('confirmPin').value.trim();
+
+      if (!currentPin || !newPin || !confirmPin) {
+        showToast('All fields are required', true);
+        return;
+      }
+
+      const res = await fetch('/api/worker/change-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          current_pin: currentPin,
+          new_pin: newPin,
+          confirm_pin: confirmPin
+        })
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        showToast('PIN changed successfully!');
+        setTimeout(() => {
+          document.getElementById('currentPin').value = '';
+          document.getElementById('newPin').value = '';
+          document.getElementById('confirmPin').value = '';
+        }, 500);
+      } else {
+        showToast(result.error || 'Failed to change PIN', true);
+      }
+    }
+
+    async function loadWorkerStats() {
+      try {
+        const today = await fetch('/api/worker/stats?period=today').then(r => r.json());
+        const week = await fetch('/api/worker/stats?period=week').then(r => r.json());
+
+        if (today.success) {
+          document.getElementById('statsToday').textContent = CURRENCY + Math.round(today.total_earnings);
+        }
+        if (week.success) {
+          document.getElementById('statsWeek').textContent = CURRENCY + Math.round(week.total_earnings);
+        }
+      } catch (e) {
+        console.error('Error loading stats:', e);
+      }
+    }
+
+    async function updateProfile() {
+      try {
+        const phone = document.getElementById('profilePhone').value.trim();
+        const email = document.getElementById('profileEmail').value.trim();
+        const address = document.getElementById('profileAddress').value.trim();
+        const res = await fetch('/api/worker/profile', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, email, address })
+        });
+        const r = await res.json();
+        if (r.success) {
+          showToast('Profile updated');
+          document.querySelector('.worker-badge').textContent = r.worker.name || document.querySelector('.worker-badge').textContent;
+        } else {
+          showToast(r.error || 'Failed', true);
+        }
+      } catch (e) { showToast('Error', true); }
+    }
+
+    function _collectJobsFromDOM() {
+      const rows = Array.from(document.querySelectorAll('#jobsList .job-card'));
+      return rows.map(el => {
+        const service = el.querySelector('.job-service')?.childNodes[0]?.textContent?.trim() || '';
+        const meta = el.querySelector('.job-meta')?.textContent?.trim() || '';
+        const price = el.querySelector('.job-price')?.textContent?.replace(CURRENCY, '').trim() || '';
+        return { service, meta, price };
+      });
+    }
+
+    function exportJobsCSV() {
+      const jobs = _collectJobsFromDOM();
+      if (!jobs.length) { showToast('No jobs to export', true); return; }
+      const lines = [['Service', 'Details', 'Price']].concat(jobs.map(j => [j.service, j.meta, j.price]));
+      const csv = lines.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `jobs-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(url);
+    }
+
+    function printJobs() {
+      const jobs = document.getElementById('jobsList').innerHTML;
+      const w = window.open('', '_blank');
+      w.document.write('<html><head><title>Jobs</title><style>body{font-family:Inter,sans-serif;padding:20px} .job-card{border-bottom:1px solid #eee;padding:8px 0}</style></head><body>');
+      w.document.write('<h3>' + document.querySelector('.header-brand h1').textContent + ' - Jobs</h3>');
+      w.document.write(jobs);
+      w.document.write('</body></html>');
+      w.document.close();
+      w.focus();
+      setTimeout(() => { w.print(); w.close(); }, 500);
+    }
+
+    function sendSummaryEmail() {
+      const jobs = _collectJobsFromDOM();
+      const total = jobs.reduce((s, j) => s + (parseFloat(j.price) || 0), 0);
+      const subject = encodeURIComponent(`${document.querySelector('.header-brand h1').textContent} - Jobs summary`);
+      let body = `Earnings: ${CURRENCY}${Math.round(total)}\n\n`;
+      jobs.forEach(j => { body += `${j.service} - ${j.meta} - ${CURRENCY}${j.price}\n`; });
+      const mail = `mailto:?subject=${subject}&body=${encodeURIComponent(body)}`;
+      window.location.href = mail;
+    }
+
+    function openModal() {
+      document.getElementById('modal').classList.add('show');
+      document.getElementById('serviceSelect').value = '';
+      document.getElementById('priceInput').value = '';
+      document.getElementById('customerName').value = '';
+      document.getElementById('jobNotes').value = '';
+      document.getElementById('customServiceField').style.display = 'none';
+      document.getElementById('quickPrices').innerHTML = '';
+      setPayment('cash', document.querySelector('.pay-opt'));
+    }
+    function closeModal() {
+      document.getElementById('modal').classList.remove('show');
+    }
+    document.getElementById('modal').addEventListener('click', e => {
+      if (e.target === document.getElementById('modal')) closeModal();
+    });
+
+    function onServiceChange() {
+      const sel = document.getElementById('serviceSelect');
+      const opt = sel.options[sel.selectedIndex];
+      const price = opt.dataset.price;
+      const custom = sel.value === 'custom';
+
+      document.getElementById('customServiceField').style.display = custom ? 'block' : 'none';
+
+      if (price) {
+        document.getElementById('priceInput').value = price;
+        showQuickPrices(parseFloat(price));
+      } else {
+        document.getElementById('priceInput').value = '';
+        document.getElementById('quickPrices').innerHTML = '';
+      }
+    }
+
+    function showQuickPrices(base) {
+      const prices = [base * 0.5, base, base * 1.5, base * 2].filter((v, i, a) => a.indexOf(v) === i);
+      const container = document.getElementById('quickPrices');
+      container.innerHTML = prices.map(p =>
+        `<button onclick="document.getElementById('priceInput').value=${p}">${CURRENCY}${Math.round(p)}</button>`
+      ).join('');
+    }
+
+    function setPayment(method, el) {
+      paymentMethod = method;
+      document.querySelectorAll('.pay-opt').forEach(e => e.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    async function submitJob() {
+      const sel = document.getElementById('serviceSelect');
+      const price = parseFloat(document.getElementById('priceInput').value);
+
+      if (!sel.value) { showToast('Please select a service', true); return; }
+      if (!price || price <= 0) { showToast('Please enter a valid price', true); return; }
+
+      const data = {
+        service_id: sel.value !== 'custom' ? sel.value : null,
+        custom_service: sel.value === 'custom' ? document.getElementById('customServiceName').value : '',
+        customer_name: document.getElementById('customerName').value || 'Walk-in',
+        price: price,
+        payment_method: paymentMethod,
+        notes: document.getElementById('jobNotes').value
+      };
+
+      const res = await fetch('/api/add_job', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        closeModal();
+        totalEarnings += price;
+        totalJobs += 1;
+        document.getElementById('statEarnings').textContent = CURRENCY + Math.round(totalEarnings);
+        document.getElementById('statJobs').textContent = totalJobs;
+        addJobToList(result.job_id, data, sel.options[sel.selectedIndex].text);
+        showToast('Job saved! ' + CURRENCY + Math.round(price));
+      }
+      else {
+        showToast(result.error || 'Error saving job', true);
+      }
+    }
+
+    function addJobToList(id, data, serviceName) {
+      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const svcName = data.custom_service || serviceName.split(' – ')[0] || 'Service';
+      const html = `<div class="job-card" id="job-${id}">
+    <div class="job-info">
+      <div class="job-service">${svcName}
+        <span class="payment-badge ${data.payment_method === 'card' ? 'card' : ''}">${data.payment_method}</span>
+      </div>
+      <div class="job-meta">${data.customer_name} · ${now}${data.notes ? ' · ' + data.notes : ''}</div>
+    </div>
+    <div class="job-price">${CURRENCY}${Math.round(data.price)}</div>
+    <div style="display:flex; gap:8px;">
+      <button class="job-del print-btn-ui" 
+        data-id="${id}"
+        data-service="${svcName}"
+        data-customer="${data.customer_name}"
+        data-price="${data.price}"
+        data-payment="${data.payment_method}"
+        data-time="${now}"
+        style="background:rgba(59,130,246,0.1); color:var(--info); border-color:rgba(59,130,246,0.2);" 
+        onclick="handlePrint(this)">⎙</button>
+      <button class="job-del" onclick="deleteJob(${id})">✕</button>
+    </div>
+  </div>`;
+      const list = document.getElementById('jobsList');
+      list.innerHTML = html + list.innerHTML;
+    }
+
+    function handlePrint(btn) {
+      const job = {
+        id: btn.dataset.id,
+        service: btn.dataset.service,
+        customer: btn.dataset.customer,
+        price: btn.dataset.price,
+        payment: btn.dataset.payment,
+        time: btn.dataset.time
+      };
+      printReceipt(job);
+    }
+
+    function printReceipt(job) {
+      const w = window.open('', '_blank');
+      w.document.write(`<html><head><title>Receipt #${job.id}</title>`);
+      w.document.write('<style>body{font-family:monospace;padding:20px;width:300px;margin:0 auto} .header{text-align:center;border-bottom:1px dashed #000;padding-bottom:10px;margin-bottom:10px} .row{display:flex;justify-content:space-between;margin-bottom:5px} .total{border-top:1px dashed #000;padding-top:10px;margin-top:10px;font-weight:bold;font-size:1.2em} .footer{text-align:center;margin-top:20px;font-size:0.8em}</style>');
+      w.document.write('</head><body>');
+      w.document.write(`<div class="header"><h3>{{ shop_name }}</h3><p>RECEIPT #${job.id}</p></div>`);
+      w.document.write(`<div class="row"><span>Date:</span><span>${new Date().toLocaleDateString()}</span></div>`);
+      w.document.write(`<div class="row"><span>Time:</span><span>${job.time}</span></div>`);
+      w.document.write(`<div class="row"><span>Customer:</span><span>${job.customer}</span></div>`);
+      w.document.write('<div style="border-bottom:1px solid #eee;margin:10px 0"></div>');
+      w.document.write(`<div class="row"><span>Service:</span><span>${job.service}</span></div>`);
+      w.document.write(`<div class="total"><div class="row"><span>TOTAL:</span><span>${CURRENCY}${Math.round(job.price)}</span></div></div>`);
+      w.document.write(`<div class="row" style="font-size:0.8em;margin-top:5px"><span>Method:</span><span>${job.payment}</span></div>`);
+      w.document.write(`<div class="footer"><p>Thank you for your visit!</p></div>`);
+      w.document.write(`<script>window.onload = function() { window.print(); window.close(); };<\/script>`);
+      w.document.write('</body></html>');
+      w.document.close();
+      w.focus();
+    }
+
+    async function deleteJob(id) {
+      if (!confirm('Remove this job?')) return;
+      const res = await fetch(`/api/delete_job/${id}`, { method: 'DELETE' });
+      const result = await res.json();
+      if (result.success) {
+        const el = document.getElementById('job-' + id);
+        // get price from the element
+        const priceEl = el.querySelector('.job-price');
+        const priceText = priceEl ? priceEl.textContent.replace(CURRENCY, '').trim() : '0';
+        const price = parseFloat(priceText) || 0;
+        el.remove();
+        totalEarnings -= price;
+        totalJobs -= 1;
+        document.getElementById('statEarnings').textContent = CURRENCY + Math.round(totalEarnings);
+        document.getElementById('statJobs').textContent = totalJobs;
+        showToast('Job removed');
+      } else {
+        showToast(result.error || 'Cannot delete', true);
+      }
+    }
+
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast' + (isError ? ' error' : '');
+      setTimeout(() => t.classList.add('show'), 10);
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    function openPayoutModal() {
+      document.getElementById('payoutModal').classList.add('show');
+      document.getElementById('payoutAmount').value = '';
+      document.getElementById('payoutNotes').value = '';
+    }
+
+    function closePayoutModal() {
+      document.getElementById('payoutModal').classList.remove('show');
+    }
+
+    async function submitPayout() {
+      const amount = parseFloat(document.getElementById('payoutAmount').value);
+      const period = document.getElementById('payoutPeriod').value;
+      const notes = document.getElementById('payoutNotes').value;
+
+      if (!amount || amount <= 0) {
+        showToast('Please enter a valid amount', true);
+        return;
+      }
+
+      const res = await fetch('/api/worker/payouts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, period, notes })
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        closePayoutModal();
+        showToast('Payout recorded!');
+        loadPayouts();
+      } else {
+        showToast(result.error || 'Error saving payout', true);
+      }
+    }
+
+    async function loadPayouts() {
+      const res = await fetch('/api/worker/payouts');
+      const result = await res.json();
+      if (result.success && result.payouts && result.payouts.length > 0) {
+        document.getElementById('payoutsSection').style.display = 'block';
+        const list = document.getElementById('payoutsList');
+        list.innerHTML = result.payouts.map(p => `
+          <div class="job-card" style="border-left: 4px solid var(--info);">
+            <div class="job-info">
+              <div class="job-service">Payout: ${p.period}</div>
+              <div class="job-meta">${p.created_at} ${p.notes ? '· ' + p.notes : ''}</div>
+            </div>
+            <div class="job-price" style="color: var(--info)">-${CURRENCY}${Math.round(p.amount)}</div>
+          </div>
+        `).join('');
+      } else {
+        document.getElementById('payoutsSection').style.display = 'none';
+      }
+    }
+
+    // Load initial data
+    loadPayouts();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <title>Login – {{ shop_name }}</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #ff3131;
+      --primary-light: #ff6666;
+
+      /* Dark Theme */
+      --bg: #000000;
+      --card-bg: #0a0a0a;
+      --border: rgba(255, 255, 255, 0.06);
+      --text: #ffffff;
+      --text-muted: #a1a1aa;
+      --danger: #ff3131;
+    }
+
+    /* Light Theme */
+    body.theme-light {
+      --bg: #f4f4f5;
+      --card-bg: #ffffff;
+      --border: rgba(0, 0, 0, 0.06);
+      --text: #111111;
+      --text-muted: #71717a;
+      --danger: #ff3131;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      transition: background 0.3s ease;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top right,
+          rgba(255, 49, 49, 0.08), transparent 50%);
+      pointer-events: none;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 32px;
+      padding: 40px 28px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow:
+        0 30px 80px rgba(235, 230, 230, 0.6),
+        0 0 0 1px rgba(167, 5, 5, 0.08);
+      animation: slideUp 0.6s ease;
+      transition: 0.3s ease;
+      position: relative;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(50px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .logo-icon {
+      font-size: 52px;
+      color: var(--primary);
+      margin-bottom: 18px;
+      display: block;
+      filter: drop-shadow(0 0 15px rgba(255, 49, 49, 0.4));
+    }
+
+    .logo h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .logo p {
+      font-size: 11px;
+      color: var(--primary);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-top: 6px;
+      font-weight: 700;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .pin-display {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      margin-bottom: 36px;
+    }
+
+    .pin-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      transition: all 0.3s ease;
+    }
+
+    .pin-dot.filled {
+      background: var(--primary);
+      border-color: var(--primary);
+      box-shadow: 0 0 18px var(--primary);
+      transform: scale(1.2);
+    }
+
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .numpad button {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 24px;
+      font-weight: 700;
+      padding: 20px;
+      border-radius: 18px;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    body.theme-light .numpad button {
+      background: #f9fafb;
+    }
+
+    .numpad button:hover {
+      background: rgba(255, 49, 49, 0.1);
+      border-color: var(--primary);
+      color: var(--primary);
+      transform: scale(0.95);
+    }
+
+    .numpad button.submit {
+      background: var(--primary) !important;
+      color: #ffffff !important;
+      border: none !important;
+      font-weight: 800;
+      box-shadow: 0 12px 30px rgba(255, 49, 49, 0.35);
+      transition: all 0.2s ease;
+    }
+
+    .numpad button.submit:hover {
+      background: var(--primary-light) !important;
+      transform: scale(0.94);
+      box-shadow: 0 16px 40px rgba(255, 49, 49, 0.45);
+    }
+
+    .numpad button.clear {
+      font-size: 18px;
+      color: var(--text-muted);
+    }
+
+    .error {
+      background: rgba(255, 49, 49, 0.1);
+      border: 1px solid rgba(255, 49, 49, 0.2);
+      color: var(--danger);
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 24px;
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes shake {
+      25% {
+        transform: translateX(-8px);
+      }
+
+      75% {
+        transform: translateX(8px);
+      }
+    }
+
+    .theme-toggle-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .footer-tagline {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      letter-spacing: 1px;
+      opacity: 0.8;
+    }
+
+    .footer-tagline span {
+      color: var(--primary);
+      font-weight: 600;
+    }
+  </style>
+
+  <script>
+    function initTheme() {
+      const saved = localStorage.getItem('appTheme') || 'light';
+      if (saved === 'light') {
+        document.body.classList.add('theme-light');
+      }
+    }
+
+
+
+    document.addEventListener('DOMContentLoaded', initTheme);
+  </script>
+</head>
+
+<body>
+
+  <div class="card">
+    <div class="logo">
+      <span class="logo-icon">✂</span>
+      <h1>{{ shop_name }}</h1>
+      <p>Management System</p>
+    </div>
+
+    {% if error %}
+    <div class="error">⚠ {{ error }}</div>
+    {% endif %}
+
+    <label>Enter Your 4-Digit PIN</label>
+
+    <div class="pin-display">
+      <div class="pin-dot" id="dot0"></div>
+      <div class="pin-dot" id="dot1"></div>
+      <div class="pin-dot" id="dot2"></div>
+      <div class="pin-dot" id="dot3"></div>
+    </div>
+
+    <form method="POST" id="loginForm">
+      <input type="hidden" name="pin" id="pinInput">
+
+      <div class="numpad">
+        {% for n in [1,2,3,4,5,6,7,8,9] %}
+        <button type="button" onclick="pressKey('{{ n }}')">{{ n }}</button>
+        {% endfor %}
+        <button type="button" class="clear" onclick="clearPin()">⌫</button>
+        <button type="button" onclick="pressKey('0')">0</button>
+        <button type="button" class="submit" onclick="submitPin()">→</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="footer-tagline">
+    Powered by <span>Virtual Tech Solution</span> © 2026
+  </div>
+
+  <script>
+    let pin = '';
+
+    function pressKey(k) {
+      if (pin.length >= 4) return;
+      pin += k;
+      updateDisplay();
+      if (pin.length === 4) setTimeout(submitPin, 200);
+    }
+
+    function clearPin() {
+      pin = pin.slice(0, -1);
+      updateDisplay();
+    }
+
+    function updateDisplay() {
+      for (let i = 0; i < 4; i++) {
+        document.getElementById('dot' + i)
+          .classList.toggle('filled', i < pin.length);
+      }
+    }
+
+    function submitPin() {
+      if (pin.length !== 4) return;
+      document.getElementById('pinInput').value = pin;
+      document.getElementById('loginForm').submit();
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key >= '0' && e.key <= '9') pressKey(e.key);
+      else if (e.key === 'Backspace') clearPin();
+      else if (e.key === 'Enter') submitPin();
+    });
+  </script>
+
+</body>
+
+</html>

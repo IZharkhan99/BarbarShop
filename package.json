@@ -1,0 +1,15 @@
+{
+  "name": "barbershop-manager",
+  "version": "1.0.0",
+  "description": "Premium Barbershop Management System",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "Virtual Tech Solution",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^31.0.0"
+  }
+}
