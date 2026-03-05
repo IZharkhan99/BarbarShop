@@ -1,0 +1,53 @@
+name: Build Mac DMG (Intel/Monterey)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-12
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Bundle Python Backend (PyInstaller)
+        run: |
+          pyinstaller --noconfirm --onedir --windowed --name "barbershop_backend" \
+            --add-data "barbershop.db:." \
+            --add-data "icon.png:." \
+            app.py
+          mkdir -p dist_python
+          cp -R dist/barbershop_backend/* dist_python/
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Node Dependencies
+        run: npm install
+
+      - name: Build and Package DMG
+        run: npm run dist -- --mac --x64
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload DMG Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BarberShop-Manager-Pro-Mac-Intel
+          path: dist/*.dmg

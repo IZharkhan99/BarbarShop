@@ -7,14 +7,38 @@ let mainWindow;
 let pythonProcess;
 
 function startPythonProcess() {
-    // Detect the correct python executable from our previously created venv_win
-    const pyPath = path.join(__dirname, 'venv_win', 'Scripts', 'python.exe');
+    let pyPath;
+    let args = [];
+    let cwd = __dirname;
+
+    if (app.isPackaged) {
+        // Production: Path within the packaged app
+        if (process.platform === 'darwin') {
+            // Mac App Bundle: Contents/Resources/backend/barbershop_backend
+            pyPath = path.join(process.resourcesPath, 'backend', 'barbershop_backend');
+        } else {
+            // Windows: resources/backend/barbershop_backend.exe
+            pyPath = path.join(process.resourcesPath, 'backend', 'barbershop_backend.exe');
+        }
+        // No args needed since it's a bundled executable
+        args = [];
+        cwd = path.join(process.resourcesPath, 'backend');
+    } else {
+        // Development
+        if (process.platform === 'win32') {
+            pyPath = path.join(__dirname, 'venv_win', 'Scripts', 'python.exe');
+        } else {
+            pyPath = path.join(__dirname, 'venv', 'bin', 'python');
+        }
+        args = ['app.py'];
+        cwd = __dirname;
+    }
 
     console.log('Starting Python process at:', pyPath);
 
-    pythonProcess = spawn(pyPath, ['app.py'], {
-        cwd: __dirname,
-        env: { ...process.env, FLASK_ENV: 'production' }
+    pythonProcess = spawn(pyPath, args, {
+        cwd: cwd,
+        env: { ...process.env, FLASK_ENV: 'production', PYTHONIOENCODING: 'utf-8' }
     });
 
     pythonProcess.stdout.on('data', (data) => {
@@ -48,10 +72,14 @@ async function checkServerReady() {
 }
 
 function createWindow() {
+    const iconPath = app.isPackaged
+        ? path.join(process.resourcesPath, 'icon.png')
+        : path.join(__dirname, 'icon.png');
+
     mainWindow = new BrowserWindow({
         width: 1280,
         height: 800,
-        icon: path.join(__dirname, 'static', 'favicon.ico'), // Ensure static/favicon.ico exists or icon is removed
+        icon: iconPath,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
@@ -61,6 +89,7 @@ function createWindow() {
     });
 
     mainWindow.loadURL('http://localhost:5000');
+    mainWindow.maximize();
 
     mainWindow.on('closed', function () {
         mainWindow = null;

@@ -1,6 +1,8 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, send_file
 import sqlite3
 import os
+import shutil
+import socket
 from datetime import datetime, date
 import json
 
@@ -10,11 +12,27 @@ DB_PATH = os.path.join(os.path.dirname(__file__), 'barbershop.db')
 
 # ── Database Setup ────────────────────────────────────────────────────────────
 
+@app.route('/icon.png')
+def get_icon():
+    return send_file(os.path.join(os.path.dirname(__file__), 'icon.png'))
+
 def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     return conn
+
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('8.8.8.8', 1))
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = '127.0.0.1'
+    finally:
+        s.close()
+    return ip
 
 def init_db():
     with get_db() as db:
@@ -417,6 +435,9 @@ def dashboard():
     workers = query("SELECT * FROM workers WHERE is_active=1 AND role='barber'")
     services = query("SELECT * FROM services WHERE is_active=1 ORDER BY name")
 
+    # Get local IP for mobile access display
+    local_ip = get_local_ip()
+
     return render_template('dashboard.html',
         shop_name=shop_name,
         currency=currency,
@@ -429,7 +450,8 @@ def dashboard():
         today_expense_total=today_expense_total,
         today_net=today_net,
         workers=workers,
-        services=services
+        services=services,
+        local_ip=local_ip
     )
 
 # ── Admin APIs ────────────────────────────────────────────────────────────────
@@ -588,13 +610,42 @@ def admin_delete_job(job_id):
     execute("DELETE FROM appointments WHERE id=?", (job_id,))
     return jsonify({'success': True})
 
-if __name__ == '__main__':
-    import socket
-    hostname = socket.gethostname()
+@app.route('/api/backup-db')
+@login_required
+@admin_required
+def backup_db():
     try:
-        local_ip = socket.gethostbyname(hostname)
-    except:
-        local_ip = '0.0.0.0'
+        return send_file(DB_PATH, as_attachment=True, download_name=f"barbershop_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db")
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/restore-db', methods=['POST'])
+@login_required
+@admin_required
+def restore_db():
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'error': 'No file part'})
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'error': 'No selected file'})
+    
+    if file:
+        try:
+            # Backup current DB before overwrite
+            backup_path = DB_PATH + ".pre_restore"
+            shutil.copy2(DB_PATH, backup_path)
+            
+            # Save new DB
+            file.save(DB_PATH)
+            return jsonify({'success': True})
+        except Exception as e:
+            # Try to restore from pre_restore if it failed
+            if os.path.exists(DB_PATH + ".pre_restore"):
+                shutil.copy2(DB_PATH + ".pre_restore", DB_PATH)
+            return jsonify({'success': False, 'error': str(e)})
+
+if __name__ == '__main__':
+    local_ip = get_local_ip()
     print(f"\n{'='*50}")
     print(f"  ✂  BarberShop Manager Running!")
     print(f"{'='*50}")
@@ -603,3 +654,5 @@ if __name__ == '__main__':
     print(f"  Admin PIN: 1234")
     print(f"{'='*50}\n")
     app.run(host='0.0.0.0', port=5000, debug=True)
+
+# trigger reload

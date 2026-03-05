@@ -4,22 +4,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0C1D32">
   <title>My Dashboard – {{ worker_name }}</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
     rel="stylesheet">
   <style>
     :root {
-      /* Red Theme (Matches login.html) */
-      --primary: #ff3131;
-      --primary-light: #ff6666;
+      /* Ocean Blue Theme */
+      --primary: #007AAD;
+      --primary-light: #D9E2E9;
 
       /* Dark Theme */
-      --bg: #000000;
-      --card-bg: #0a0a0a;
-      --panel-bg: #0a0a0a;
+      --bg: #0C1D32;
+      --card-bg: #12263F;
+      --panel-bg: #12263F;
       --border: rgba(255, 255, 255, 0.08);
-      --input-bg: #121212;
+      --input-bg: #0C1D32;
       --text: #ffffff;
       --text-muted: #a1a1aa;
 
@@ -32,12 +36,12 @@
 
     /* Light Theme Override */
     body.theme-light {
-      --bg: #f8fafc;
+      --bg: #FFFBFC;
       --card-bg: #ffffff;
       --panel-bg: #ffffff;
-      --border: #e2e8f0;
-      --input-bg: #f1f5f9;
-      --text: #0f172a;
+      --border: rgba(0, 122, 173, 0.1);
+      --input-bg: #f8fafc;
+      --text: #0C1D32;
       --text-muted: #64748b;
       --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
@@ -53,7 +57,8 @@
       font-family: 'Poppins', sans-serif;
       color: var(--text);
       min-height: 100vh;
-      padding-bottom: 40px;
+      padding-bottom: 100px;
+      /* Increased bottom padding */
       transition: background 0.3s ease, color 0.3s ease;
     }
 
@@ -62,7 +67,7 @@
       position: fixed;
       inset: 0;
       background: radial-gradient(circle at top right,
-          rgba(255, 49, 49, 0.08), transparent 50%);
+          rgba(0, 122, 173, 0.12), transparent 50%);
       pointer-events: none;
       z-index: -1;
     }
@@ -82,9 +87,13 @@
       backdrop-filter: blur(10px);
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 640px) {
       .header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
         padding: 16px;
+        gap: 12px;
       }
     }
 
@@ -95,9 +104,10 @@
     }
 
     .header-brand .icon {
-      font-size: 26px;
-      color: var(--primary);
-      filter: drop-shadow(0 0 10px rgba(255, 49, 49, 0.4));
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 10px rgba(0, 122, 173, 0.4));
     }
 
     .header-brand h1 {
@@ -123,20 +133,30 @@
       gap: 12px;
     }
 
-    @media (max-width: 640px) {
-      .header-right {
-        gap: 8px;
-      }
+    .header-right {
+      gap: 6px;
+      justify-content: center;
+      flex-wrap: wrap;
+      width: 100%;
+    }
 
-      .worker-badge,
-      .logout-btn {
-        padding: 6px 10px;
-        font-size: 11px;
-      }
+    .worker-badge,
+    .logout-btn,
+    .theme-toggle-btn {
+      padding: 8px 12px;
+      font-size: 11px;
+      flex: 1 1 auto;
+      justify-content: center;
+    }
 
-      .header-brand h1 {
-        font-size: 16px;
-      }
+    .header-brand h1 {
+      font-size: 16px;
+    }
+
+    .header-brand .icon {
+      width: 24px;
+      height: 24px;
+    }
     }
 
     .worker-badge {
@@ -162,9 +182,9 @@
     }
 
     .logout-btn:hover {
-      background: var(--danger);
+      background: #006b99;
       color: white;
-      box-shadow: 0 4px 15px rgba(255, 49, 49, 0.3);
+      box-shadow: 0 4px 15px rgba(0, 122, 173, 0.3);
     }
 
     /* Stats */
@@ -198,7 +218,7 @@
     .stat-card:hover {
       transform: translateY(-5px);
       border-color: var(--primary);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 10px 30px rgba(0, 122, 173, 0.2);
     }
 
     .stat-card .val {
@@ -245,14 +265,14 @@
       align-items: center;
       justify-content: center;
       gap: 12px;
-      box-shadow: 0 10px 30px rgba(255, 49, 49, 0.3);
+      box-shadow: 0 10px 30px rgba(0, 122, 173, 0.3);
       text-transform: uppercase;
     }
 
     .add-btn:hover {
       transform: translateY(-3px);
-      box-shadow: 0 15px 40px rgba(255, 49, 49, 0.4);
-      background: var(--primary-light);
+      box-shadow: 0 15px 40px rgba(0, 122, 173, 0.4);
+      background: #006b99;
     }
 
     .add-btn:active {
@@ -295,14 +315,70 @@
     .job-card:hover {
       transform: scale(1.02);
       border-color: var(--primary);
-      background: rgba(255, 49, 49, 0.02);
+      background: rgba(0, 122, 173, 0.03);
     }
 
     @media (max-width: 480px) {
+      .stats-grid {
+        padding: 16px;
+        gap: 12px;
+      }
+
+      .stat-card {
+        padding: 24px 16px;
+        border-radius: 24px;
+      }
+
+      .stat-card .val {
+        font-size: 32px;
+      }
+
       .job-card {
         flex-direction: column;
         align-items: flex-start;
-        gap: 16px;
+        gap: 12px;
+        padding: 20px;
+        border-radius: 20px;
+      }
+
+      .job-price {
+        font-size: 22px;
+        margin-right: 0;
+      }
+
+      .job-info {
+        width: 100%;
+      }
+
+      .job-del {
+        align-self: flex-end;
+        padding: 12px 16px;
+        /* Increased touch target */
+        font-size: 20px;
+        min-width: 48px;
+        min-height: 48px;
+      }
+    }
+
+    @media (max-width: 375px) {
+      .add-btn-wrap {
+        flex-direction: column !important;
+      }
+
+      .add-btn {
+        padding: 16px;
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .form-row {
+        flex-direction: column !important;
+        gap: 0 !important;
+      }
+
+      .form-row .field {
+        width: 100% !important;
       }
     }
 
@@ -391,8 +467,8 @@
     }
 
     .payment-badge.card {
-      background: rgba(255, 49, 49, 0.1);
-      border-color: rgba(255, 49, 49, 0.2);
+      background: rgba(0, 122, 173, 0.1);
+      border-color: rgba(0, 122, 173, 0.2);
       color: var(--primary);
     }
 
@@ -476,6 +552,16 @@
 
       .modal-handle {
         display: block;
+      }
+
+      @media (max-height: 600px) {
+        .modal {
+          padding: 16px 16px 32px;
+        }
+
+        .modal h2 {
+          margin-bottom: 16px;
+        }
       }
     }
 
@@ -606,7 +692,7 @@
       border-color: var(--primary);
       color: #fff;
       background: var(--primary);
-      box-shadow: 0 4px 15px rgba(255, 49, 49, 0.3);
+      box-shadow: 0 4px 15px rgba(0, 122, 173, 0.3);
     }
 
     .submit-btn {
@@ -621,7 +707,7 @@
       cursor: pointer;
       margin-top: 12px;
       font-family: 'Poppins', sans-serif;
-      box-shadow: 0 10px 25px rgba(255, 49, 49, 0.25);
+      box-shadow: 0 10px 25px rgba(0, 122, 173, 0.25);
       transition: all 0.3s;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -666,8 +752,8 @@
 
     .submit-btn:hover {
       transform: translateY(-2px);
-      background: var(--primary-light);
-      box-shadow: 0 15px 35px rgba(255, 49, 49, 0.35);
+      background: #006b99;
+      box-shadow: 0 15px 35px rgba(0, 122, 173, 0.35);
     }
 
     .theme-toggle-btn {
@@ -686,7 +772,7 @@
     }
 
     .theme-toggle-btn:hover {
-      background: rgba(255, 49, 49, 0.1);
+      background: rgba(0, 122, 173, 0.1);
       color: var(--primary);
       border-color: var(--primary);
     }
@@ -733,6 +819,18 @@
       localStorage.setItem('appTheme', isLight ? 'light' : 'dark');
     }
 
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
     // Run after DOM loads (recommended)
     document.addEventListener('DOMContentLoaded', initTheme);
   </script>
@@ -742,26 +840,24 @@
 
   <div class="header">
     <div class="header-brand">
-      <span class="icon">✂</span>
+      <img src="/icon.png" class="icon">
       <div>
         <h1>{{ shop_name }}</h1>
         <p>Worker Portal</p>
       </div>
     </div>
     <div class="header-right">
-      <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode"
-        style="border:none; padding:8px;">🌓 Toggle Theme</button>
+      <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode" style="border:none;">🌓
+        Theme</button>
       <span class="worker-badge">{{ worker_name }}</span>
       <button class="worker-badge" onclick="openSettings()"
-        style="background:rgba(255,49,49,0.15);border:1px solid rgba(255,49,49,0.3);cursor:pointer;">⚙
-        Settings</button>
+        style="background:rgba(255,49,49,0.15);border:1px solid rgba(255,49,49,0.3);cursor:pointer;">⚙ Settings</button>
       {% if worker_role == 'admin' %}
-      <a href="/dashboard"
-        style="color:var(--primary);font-size:12px;text-decoration:none;border:1px solid rgba(255,49,49,0.3);padding:7px 10px;border-radius:8px;">Back</a>
+      <a href="/dashboard" class="worker-badge"
+        style="color:var(--primary);text-decoration:none;border:1px solid var(--primary); background:rgba(0, 122, 173, 0.1); display: flex; align-items:center; font-weight:800;">↩
+        Desktop</a>
       {% endif %}
-      <a href="/logout" class="logout-btn">Log Out</a>
-
-
+      <a href="/logout" class="logout-btn" onclick="return confirm('Are you sure you want to log out?');">Log Out</a>
     </div>
   </div>
 
