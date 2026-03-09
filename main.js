@@ -90,6 +90,8 @@ function createWindow() {
 
     mainWindow.loadURL('http://localhost:5000');
     mainWindow.maximize();
+    mainWindow.show();
+    mainWindow.focus();
 
     mainWindow.on('closed', function () {
         mainWindow = null;

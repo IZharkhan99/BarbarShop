@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, send_file
 import sqlite3
 import os
+import glob
 import shutil
 import socket
 from datetime import datetime, date
@@ -14,6 +15,12 @@ DB_PATH = os.path.join(os.path.dirname(__file__), 'barbershop.db')
 
 @app.route('/icon.png')
 def get_icon():
+    # Serve custom uploaded logo if exists, otherwise default icon.png
+    uploads_dir = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
+    for ext in ['png', 'jpg', 'jpeg', 'webp', 'svg']:
+        logo_path = os.path.join(uploads_dir, f'logo.{ext}')
+        if os.path.exists(logo_path):
+            return send_file(logo_path)
     return send_file(os.path.join(os.path.dirname(__file__), 'icon.png'))
 
 def get_db():
@@ -101,6 +108,7 @@ def init_db():
         INSERT OR IGNORE INTO shop_settings VALUES ('shop_name', 'Classic Cuts Barbershop');
         INSERT OR IGNORE INTO shop_settings VALUES ('currency', 'Rs');
         INSERT OR IGNORE INTO shop_settings VALUES ('admin_pin', '1234');
+        INSERT OR IGNORE INTO shop_settings VALUES ('worker_commission', '30');
 
         INSERT OR IGNORE INTO workers (id, name, pin, role) VALUES (1, 'Admin', '1234', 'admin');
 
@@ -210,6 +218,7 @@ def worker_dashboard():
     services = query("SELECT * FROM services WHERE is_active=1 ORDER BY name")
     currency = get_setting('currency')
     shop_name = get_setting('shop_name')
+    commission = int(get_setting('worker_commission') or 30)
 
     return render_template('worker.html',
         worker_name=session['worker_name'],
@@ -220,7 +229,8 @@ def worker_dashboard():
         services=services,
         currency=currency,
         shop_name=shop_name,
-        today=today
+        today=today,
+        commission=commission
     )
 
 @app.route('/api/add_job', methods=['POST'])
@@ -434,6 +444,7 @@ def dashboard():
 
     workers = query("SELECT * FROM workers WHERE is_active=1 AND role='barber'")
     services = query("SELECT * FROM services WHERE is_active=1 ORDER BY name")
+    commission = int(get_setting('worker_commission') or 30)
 
     # Get local IP for mobile access display
     local_ip = get_local_ip()
@@ -451,7 +462,8 @@ def dashboard():
         today_net=today_net,
         workers=workers,
         services=services,
-        local_ip=local_ip
+        local_ip=local_ip,
+        commission=commission
     )
 
 # ── Admin APIs ────────────────────────────────────────────────────────────────
@@ -608,6 +620,30 @@ def settings_api():
 @admin_required
 def admin_delete_job(job_id):
     execute("DELETE FROM appointments WHERE id=?", (job_id,))
+    return jsonify({'success': True})
+
+@app.route('/api/upload-logo', methods=['POST'])
+@login_required
+@admin_required
+def upload_logo():
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'error': 'No file uploaded'})
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'error': 'No file selected'})
+    # Validate extension
+    allowed = {'png', 'jpg', 'jpeg', 'webp', 'svg'}
+    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+    if ext not in allowed:
+        return jsonify({'success': False, 'error': 'Invalid file type. Use PNG, JPG, WEBP, or SVG'})
+    # Remove any existing logos
+    uploads_dir = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
+    os.makedirs(uploads_dir, exist_ok=True)
+    for old in glob.glob(os.path.join(uploads_dir, 'logo.*')):
+        os.remove(old)
+    # Save new logo
+    logo_path = os.path.join(uploads_dir, f'logo.{ext}')
+    file.save(logo_path)
     return jsonify({'success': True})
 
 @app.route('/api/backup-db')
