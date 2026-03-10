@@ -73,8 +73,8 @@ async function checkServerReady() {
 
 function createWindow() {
     const iconPath = app.isPackaged
-        ? path.join(process.resourcesPath, 'icon.png')
-        : path.join(__dirname, 'icon.png');
+        ? path.join(process.resourcesPath, 'AlShahidLogo.jpeg')
+        : path.join(__dirname, 'AlShahidLogo.jpeg');
 
     mainWindow = new BrowserWindow({
         width: 1280,

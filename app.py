@@ -21,7 +21,7 @@ def get_icon():
         logo_path = os.path.join(uploads_dir, f'logo.{ext}')
         if os.path.exists(logo_path):
             return send_file(logo_path)
-    return send_file(os.path.join(os.path.dirname(__file__), 'icon.png'))
+    return send_file(os.path.join(os.path.dirname(__file__), 'AlShahidLogo.jpeg'))
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -202,15 +202,16 @@ def admin_required(f):
 @login_required
 def worker_dashboard():
     worker_id = session['worker_id']
-    today = date.today().isoformat()
+    from_date = request.args.get('from', date.today().isoformat())
+    to_date = request.args.get('to', date.today().isoformat())
 
     today_jobs = query("""
         SELECT a.*, s.name as service_name
         FROM appointments a
         LEFT JOIN services s ON a.service_id = s.id
-        WHERE a.worker_id=? AND date(a.created_at)=?
+        WHERE a.worker_id=? AND date(a.created_at) BETWEEN ? AND ?
         ORDER BY a.created_at DESC
-    """, (worker_id, today))
+    """, (worker_id, from_date, to_date))
 
     today_earnings = sum(j['price'] for j in today_jobs)
     today_count = len(today_jobs)
@@ -229,7 +230,9 @@ def worker_dashboard():
         services=services,
         currency=currency,
         shop_name=shop_name,
-        today=today,
+        today=date.today().isoformat(),
+        from_date=from_date,
+        to_date=to_date,
         commission=commission
     )
 
@@ -400,45 +403,47 @@ def worker_payouts():
 @login_required
 @admin_required
 def dashboard():
-    today = date.today().isoformat()
+    from_date = request.args.get('from', date.today().isoformat())
+    to_date = request.args.get('to', date.today().isoformat())
     currency = get_setting('currency')
     shop_name = get_setting('shop_name')
 
-    # Today stats
+    # Status stats (for the selected range)
     today_jobs = query("""
         SELECT a.*, w.name as worker_name, s.name as service_name
         FROM appointments a
         LEFT JOIN workers w ON a.worker_id = w.id
         LEFT JOIN services s ON a.service_id = s.id
-        WHERE date(a.created_at)=?
+        WHERE date(a.created_at) BETWEEN ? AND ?
         ORDER BY a.created_at DESC
-    """, (today,))
+    """, (from_date, to_date))
 
     today_revenue = sum(j['price'] for j in today_jobs)
     today_count = len(today_jobs)
 
-    # Per-worker today
+    # Per-worker stats (include admin if they have jobs)
     worker_stats = query("""
         SELECT w.name, COUNT(a.id) as jobs, SUM(a.price) as earnings
         FROM workers w
-        LEFT JOIN appointments a ON w.id=a.worker_id AND date(a.created_at)=?
-        WHERE w.is_active=1 AND w.role='barber'
+        LEFT JOIN appointments a ON w.id=a.worker_id AND date(a.created_at) BETWEEN ? AND ?
+        WHERE w.is_active=1
         GROUP BY w.id, w.name
+        HAVING earnings > 0 OR w.role='barber'
         ORDER BY earnings DESC NULLS LAST
-    """, (today,))
+    """, (from_date, to_date))
 
-    # Today expenses
+    # Expenses (for the selected range)
     today_expenses = query("""
         SELECT e.*, w.name as added_by_name
         FROM expenses e
         LEFT JOIN workers w ON e.added_by=w.id
-        WHERE date(e.created_at)=?
+        WHERE date(e.created_at) BETWEEN ? AND ?
         ORDER BY e.created_at DESC
-    """, (today,))
+    """, (from_date, to_date))
     today_expense_total = sum(e['amount'] for e in today_expenses)
     
-    # Today payouts
-    today_payouts = query("SELECT SUM(amount) as total FROM payouts WHERE date(created_at)=?", (today,), one=True)
+    # Payouts (for the selected range)
+    today_payouts = query("SELECT SUM(amount) as total FROM payouts WHERE date(created_at) BETWEEN ? AND ?", (from_date, to_date), one=True)
     today_payout_total = today_payouts['total'] or 0
     today_net = today_revenue - today_expense_total - today_payout_total
 
@@ -452,13 +457,16 @@ def dashboard():
     return render_template('dashboard.html',
         shop_name=shop_name,
         currency=currency,
-        today=today,
+        today=date.today().isoformat(),
+        from_date=from_date,
+        to_date=to_date,
         today_jobs=today_jobs,
         today_revenue=today_revenue,
         today_count=today_count,
         worker_stats=worker_stats,
         today_expenses=today_expenses,
         today_expense_total=today_expense_total,
+        today_payout_total=today_payout_total,
         today_net=today_net,
         workers=workers,
         services=services,

@@ -166,7 +166,6 @@
       width: 24px;
       height: 24px;
     }
-    }
 
     .worker-badge {
       background: rgba(255, 255, 255, 0.05);
@@ -927,6 +926,28 @@
     </div>
   </div>
 
+  <div class="filter-row"
+    style="display: flex; gap: 10px; padding: 0 20px 20px; align-items: flex-end; flex-wrap: wrap;">
+    <div class="field" style="margin-bottom: 0; flex: 1; min-width: 120px;">
+      <label style="font-size: 9px; letter-spacing: 1px;">From</label>
+      <input type="date" id="dateFrom" value="{{ from_date }}"
+        style="padding: 10px; border-radius: 12px; font-size: 13px; background: var(--card-bg);">
+    </div>
+    <div class="field" style="margin-bottom: 0; flex: 1; min-width: 120px;">
+      <label style="font-size: 9px; letter-spacing: 1px;">To</label>
+      <input type="date" id="dateTo" value="{{ to_date }}"
+        style="padding: 10px; border-radius: 12px; font-size: 13px; background: var(--card-bg);">
+    </div>
+    <div style="display: flex; gap: 8px; width: 100%; margin-top: 10px;">
+      <button class="add-btn"
+        style="padding: 12px; font-size: 12px; flex: 1; box-shadow: none; height: 44px; text-transform: none;"
+        onclick="applyDateFilter()">Filter</button>
+      <button class="logout-btn"
+        style="padding: 12px; font-size: 12px; flex: 1; height: 44px; background: rgba(0, 122, 173, 0.1); color: var(--primary); border-color: var(--primary);"
+        onclick="resetDateFilter()">Today</button>
+    </div>
+  </div>
+
   <div class="stats-grid">
     <div class="stat-card">
       <div class="val" id="statEarnings">{{ currency }}{{ "%.0f"|format(today_earnings) }}</div>
@@ -1158,6 +1179,16 @@
   <div id="toast" class="toast"></div>
 
   <script>
+    function applyDateFilter() {
+      const from = document.getElementById('dateFrom').value;
+      const to = document.getElementById('dateTo').value;
+      window.location.href = `/worker?from=${from}&to=${to}`;
+    }
+
+    function resetDateFilter() {
+      window.location.href = '/worker';
+    }
+
     const CURRENCY = "{{ currency }}";
     const COMMISSION = {{ commission }};
     let paymentMethod = 'cash';

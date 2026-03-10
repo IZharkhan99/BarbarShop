@@ -38,12 +38,12 @@
           "**/*"
         ]
       },
-      "icon.png"
+      "AlShahidLogo.jpeg"
     ],
     "mac": {
       "target": "dmg",
       "category": "public.app-category.business",
-      "icon": "icon.png",
+      "icon": "AlShahidLogo.jpeg",
       "arch": [
         "x64"
       ]
