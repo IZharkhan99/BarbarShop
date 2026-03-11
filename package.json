@@ -5,7 +5,10 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "build:exe": "powershell -ExecutionPolicy Bypass -File build_exe.ps1",
+    "build:mac": "chmod +x build_mac.sh && ./build_mac.sh",
+    "build": "node -e \"const cmd = process.platform === 'win32' ? 'npm run build:exe' : 'npm run build:mac'; require('child_process').execSync(cmd, {stdio: 'inherit'})\""
   },
   "keywords": [],
   "author": "Virtual Tech Solution",
@@ -43,10 +46,11 @@
     "mac": {
       "target": "dmg",
       "category": "public.app-category.business",
-      "icon": "AlShahidLogo.jpeg",
-      "arch": [
-        "x64"
-      ]
+      "icon": "AlShahidLogo.jpeg"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "AlShahidLogo.jpeg"
     },
     "dmg": {
       "title": "BarberShop Manager Pro",

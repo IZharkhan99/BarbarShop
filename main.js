@@ -36,9 +36,16 @@ function startPythonProcess() {
 
     console.log('Starting Python process at:', pyPath);
 
+    const userDataPath = app.getPath('userData');
+    
     pythonProcess = spawn(pyPath, args, {
         cwd: cwd,
-        env: { ...process.env, FLASK_ENV: 'production', PYTHONIOENCODING: 'utf-8' }
+        env: { 
+            ...process.env, 
+            FLASK_ENV: 'production', 
+            PYTHONIOENCODING: 'utf-8',
+            BARBERSHOP_DATA: userDataPath
+        }
     });
 
     pythonProcess.stdout.on('data', (data) => {

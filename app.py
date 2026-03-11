@@ -6,22 +6,27 @@ import shutil
 import socket
 from datetime import datetime, date
 import json
+import sys
 
 app = Flask(__name__)
 app.secret_key = 'barbershop_secret_2024'
-DB_PATH = os.path.join(os.path.dirname(__file__), 'barbershop.db')
+
+# Use BARBERSHOP_DATA if provided (for packaged app), else fallback to current directory
+DATA_DIR = os.getenv('BARBERSHOP_DATA', os.path.dirname(__file__))
+DB_PATH = os.path.join(DATA_DIR, 'barbershop.db')
+STATIC_ROOT = os.path.dirname(__file__) # Static files (templates/css) remain in script dir
 
 # ── Database Setup ────────────────────────────────────────────────────────────
 
 @app.route('/icon.png')
 def get_icon():
-    # Serve custom uploaded logo if exists, otherwise default icon.png
-    uploads_dir = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
+    # Serve custom uploaded logo if exists from DATA_DIR, otherwise default icon.png from STATIC_ROOT
+    uploads_dir = os.path.join(DATA_DIR, 'static', 'uploads')
     for ext in ['png', 'jpg', 'jpeg', 'webp', 'svg']:
         logo_path = os.path.join(uploads_dir, f'logo.{ext}')
         if os.path.exists(logo_path):
             return send_file(logo_path)
-    return send_file(os.path.join(os.path.dirname(__file__), 'AlShahidLogo.jpeg'))
+    return send_file(os.path.join(STATIC_ROOT, 'AlShahidLogo.jpeg'))
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -644,12 +649,12 @@ def upload_logo():
     ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
     if ext not in allowed:
         return jsonify({'success': False, 'error': 'Invalid file type. Use PNG, JPG, WEBP, or SVG'})
-    # Remove any existing logos
-    uploads_dir = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
+    # Save new logo
+    uploads_dir = os.path.join(DATA_DIR, 'static', 'uploads')
     os.makedirs(uploads_dir, exist_ok=True)
     for old in glob.glob(os.path.join(uploads_dir, 'logo.*')):
         os.remove(old)
-    # Save new logo
+    
     logo_path = os.path.join(uploads_dir, f'logo.{ext}')
     file.save(logo_path)
     return jsonify({'success': True})
@@ -691,13 +696,15 @@ def restore_db():
 if __name__ == '__main__':
     local_ip = get_local_ip()
     print(f"\n{'='*50}")
-    print(f"  ✂  BarberShop Manager Running!")
+    print(f"  BarberShop Manager Running!")
     print(f"{'='*50}")
     print(f"  PC:     http://localhost:5000")
     print(f"  Mobile: http://{local_ip}:5000")
     print(f"  Admin PIN: 1234")
     print(f"{'='*50}\n")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Use debug=False in production/packaged app to avoid reloader issues
+    is_prod = os.getenv('FLASK_ENV') == 'production' or getattr(sys, 'frozen', False)
+    app.run(host='0.0.0.0', port=5000, debug=not is_prod)
 
 # trigger reload
 # trigger reload

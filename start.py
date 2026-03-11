@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-✂  BarberShop Manager – Startup Script
+BarberShop Manager – Startup Script
 Run this file to start the server.
 Workers can connect from phones on the same WiFi.
 """
@@ -43,20 +43,20 @@ if __name__ == "__main__":
 
     ip = get_local_ip()
     print("""
-╔══════════════════════════════════════════════╗
-║       ✂  BarberShop Manager v1.0            ║
-╠══════════════════════════════════════════════╣
-║                                              ║
-║  Server is running!                          ║
-║                                              ║""")
-    print(f"║  PC Access:    http://localhost:5000         ║")
-    print(f"║  Mobile/WiFi:  http://{ip}:5000{' '*(20-len(ip))}║")
-    print("""║                                              ║
-║  Default Admin PIN: 1234                     ║
-║  Change it in Settings after first login     ║
-║                                              ║
-║  Press CTRL+C to stop the server             ║
-╚══════════════════════════════════════════════╝
++----------------------------------------------+
+|         BarberShop Manager v1.0              |
++----------------------------------------------+
+|                                              |
+|  Server is running!                          |
+|                                              |""")
+    print(f"|  PC Access:    http://localhost:5000         |")
+    print(f"|  Mobile/WiFi:  http://{ip}:5000{' '*(20-len(ip))}|")
+    print("""|                                              |
+|  Default Admin PIN: 1234                     |
+|  Change it in Settings after first login     |
+|                                              |
+|  Press CTRL+C to stop the server             |
++----------------------------------------------+
 """)
 
     # if gunicorn is available we use it for a simple production startup
