@@ -1,20 +1,32 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, send_file
 import sqlite3
 import os
+import glob
 import shutil
 import socket
 from datetime import datetime, date
 import json
+import sys
 
 app = Flask(__name__)
 app.secret_key = 'barbershop_secret_2024'
-DB_PATH = os.path.join(os.path.dirname(__file__), 'barbershop.db')
+
+# Use BARBERSHOP_DATA if provided (for packaged app), else fallback to current directory
+DATA_DIR = os.getenv('BARBERSHOP_DATA', os.path.dirname(__file__))
+DB_PATH = os.path.join(DATA_DIR, 'barbershop.db')
+STATIC_ROOT = os.path.dirname(__file__) # Static files (templates/css) remain in script dir
 
 # ── Database Setup ────────────────────────────────────────────────────────────
 
 @app.route('/icon.png')
 def get_icon():
-    return send_file(os.path.join(os.path.dirname(__file__), 'icon.png'))
+    # Serve custom uploaded logo if exists from DATA_DIR, otherwise default icon.png from STATIC_ROOT
+    uploads_dir = os.path.join(DATA_DIR, 'static', 'uploads')
+    for ext in ['png', 'jpg', 'jpeg', 'webp', 'svg']:
+        logo_path = os.path.join(uploads_dir, f'logo.{ext}')
+        if os.path.exists(logo_path):
+            return send_file(logo_path)
+    return send_file(os.path.join(STATIC_ROOT, 'AlShahidLogo.jpeg'))
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -101,6 +113,7 @@ def init_db():
         INSERT OR IGNORE INTO shop_settings VALUES ('shop_name', 'Classic Cuts Barbershop');
         INSERT OR IGNORE INTO shop_settings VALUES ('currency', 'Rs');
         INSERT OR IGNORE INTO shop_settings VALUES ('admin_pin', '1234');
+        INSERT OR IGNORE INTO shop_settings VALUES ('worker_commission', '30');
 
         INSERT OR IGNORE INTO workers (id, name, pin, role) VALUES (1, 'Admin', '1234', 'admin');
 
@@ -194,15 +207,16 @@ def admin_required(f):
 @login_required
 def worker_dashboard():
     worker_id = session['worker_id']
-    today = date.today().isoformat()
+    from_date = request.args.get('from', date.today().isoformat())
+    to_date = request.args.get('to', date.today().isoformat())
 
     today_jobs = query("""
         SELECT a.*, s.name as service_name
         FROM appointments a
         LEFT JOIN services s ON a.service_id = s.id
-        WHERE a.worker_id=? AND date(a.created_at)=?
+        WHERE a.worker_id=? AND date(a.created_at) BETWEEN ? AND ?
         ORDER BY a.created_at DESC
-    """, (worker_id, today))
+    """, (worker_id, from_date, to_date))
 
     today_earnings = sum(j['price'] for j in today_jobs)
     today_count = len(today_jobs)
@@ -210,6 +224,7 @@ def worker_dashboard():
     services = query("SELECT * FROM services WHERE is_active=1 ORDER BY name")
     currency = get_setting('currency')
     shop_name = get_setting('shop_name')
+    commission = int(get_setting('worker_commission') or 30)
 
     return render_template('worker.html',
         worker_name=session['worker_name'],
@@ -220,7 +235,10 @@ def worker_dashboard():
         services=services,
         currency=currency,
         shop_name=shop_name,
-        today=today
+        today=date.today().isoformat(),
+        from_date=from_date,
+        to_date=to_date,
+        commission=commission
     )
 
 @app.route('/api/add_job', methods=['POST'])
@@ -390,50 +408,53 @@ def worker_payouts():
 @login_required
 @admin_required
 def dashboard():
-    today = date.today().isoformat()
+    from_date = request.args.get('from', date.today().isoformat())
+    to_date = request.args.get('to', date.today().isoformat())
     currency = get_setting('currency')
     shop_name = get_setting('shop_name')
 
-    # Today stats
+    # Status stats (for the selected range)
     today_jobs = query("""
         SELECT a.*, w.name as worker_name, s.name as service_name
         FROM appointments a
         LEFT JOIN workers w ON a.worker_id = w.id
         LEFT JOIN services s ON a.service_id = s.id
-        WHERE date(a.created_at)=?
+        WHERE date(a.created_at) BETWEEN ? AND ?
         ORDER BY a.created_at DESC
-    """, (today,))
+    """, (from_date, to_date))
 
     today_revenue = sum(j['price'] for j in today_jobs)
     today_count = len(today_jobs)
 
-    # Per-worker today
+    # Per-worker stats (include admin if they have jobs)
     worker_stats = query("""
         SELECT w.name, COUNT(a.id) as jobs, SUM(a.price) as earnings
         FROM workers w
-        LEFT JOIN appointments a ON w.id=a.worker_id AND date(a.created_at)=?
-        WHERE w.is_active=1 AND w.role='barber'
+        LEFT JOIN appointments a ON w.id=a.worker_id AND date(a.created_at) BETWEEN ? AND ?
+        WHERE w.is_active=1
         GROUP BY w.id, w.name
+        HAVING earnings > 0 OR w.role='barber'
         ORDER BY earnings DESC NULLS LAST
-    """, (today,))
+    """, (from_date, to_date))
 
-    # Today expenses
+    # Expenses (for the selected range)
     today_expenses = query("""
         SELECT e.*, w.name as added_by_name
         FROM expenses e
         LEFT JOIN workers w ON e.added_by=w.id
-        WHERE date(e.created_at)=?
+        WHERE date(e.created_at) BETWEEN ? AND ?
         ORDER BY e.created_at DESC
-    """, (today,))
+    """, (from_date, to_date))
     today_expense_total = sum(e['amount'] for e in today_expenses)
     
-    # Today payouts
-    today_payouts = query("SELECT SUM(amount) as total FROM payouts WHERE date(created_at)=?", (today,), one=True)
+    # Payouts (for the selected range)
+    today_payouts = query("SELECT SUM(amount) as total FROM payouts WHERE date(created_at) BETWEEN ? AND ?", (from_date, to_date), one=True)
     today_payout_total = today_payouts['total'] or 0
     today_net = today_revenue - today_expense_total - today_payout_total
 
     workers = query("SELECT * FROM workers WHERE is_active=1 AND role='barber'")
     services = query("SELECT * FROM services WHERE is_active=1 ORDER BY name")
+    commission = int(get_setting('worker_commission') or 30)
 
     # Get local IP for mobile access display
     local_ip = get_local_ip()
@@ -441,17 +462,21 @@ def dashboard():
     return render_template('dashboard.html',
         shop_name=shop_name,
         currency=currency,
-        today=today,
+        today=date.today().isoformat(),
+        from_date=from_date,
+        to_date=to_date,
         today_jobs=today_jobs,
         today_revenue=today_revenue,
         today_count=today_count,
         worker_stats=worker_stats,
         today_expenses=today_expenses,
         today_expense_total=today_expense_total,
+        today_payout_total=today_payout_total,
         today_net=today_net,
         workers=workers,
         services=services,
-        local_ip=local_ip
+        local_ip=local_ip,
+        commission=commission
     )
 
 # ── Admin APIs ────────────────────────────────────────────────────────────────
@@ -610,6 +635,30 @@ def admin_delete_job(job_id):
     execute("DELETE FROM appointments WHERE id=?", (job_id,))
     return jsonify({'success': True})
 
+@app.route('/api/upload-logo', methods=['POST'])
+@login_required
+@admin_required
+def upload_logo():
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'error': 'No file uploaded'})
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'error': 'No file selected'})
+    # Validate extension
+    allowed = {'png', 'jpg', 'jpeg', 'webp', 'svg'}
+    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+    if ext not in allowed:
+        return jsonify({'success': False, 'error': 'Invalid file type. Use PNG, JPG, WEBP, or SVG'})
+    # Save new logo
+    uploads_dir = os.path.join(DATA_DIR, 'static', 'uploads')
+    os.makedirs(uploads_dir, exist_ok=True)
+    for old in glob.glob(os.path.join(uploads_dir, 'logo.*')):
+        os.remove(old)
+    
+    logo_path = os.path.join(uploads_dir, f'logo.{ext}')
+    file.save(logo_path)
+    return jsonify({'success': True})
+
 @app.route('/api/backup-db')
 @login_required
 @admin_required
@@ -647,12 +696,24 @@ def restore_db():
 if __name__ == '__main__':
     local_ip = get_local_ip()
     print(f"\n{'='*50}")
-    print(f"  ✂  BarberShop Manager Running!")
+    print(f"  BarberShop Manager Running!")
     print(f"{'='*50}")
     print(f"  PC:     http://localhost:5000")
     print(f"  Mobile: http://{local_ip}:5000")
     print(f"  Admin PIN: 1234")
     print(f"{'='*50}\n")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Use debug=False in production/packaged app to avoid reloader issues
+    is_prod = os.getenv('FLASK_ENV') == 'production' or getattr(sys, 'frozen', False)
+    app.run(host='0.0.0.0', port=5000, debug=not is_prod)
 
+# trigger reload
+# trigger reload
+# trigger reload
+# trigger reload
+# trigger reload
+# trigger reload
+# trigger reload# trigger reload
+# trigger reload
+# trigger reload
+# trigger reload
 # trigger reload

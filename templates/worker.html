@@ -92,8 +92,17 @@
         flex-direction: column;
         align-items: center;
         text-align: center;
-        padding: 16px;
-        gap: 12px;
+        padding: 12px;
+        gap: 8px;
+      }
+
+      .header-brand h1 {
+        font-size: 14px;
+      }
+
+      .header-brand .icon {
+        width: 24px;
+        height: 24px;
       }
     }
 
@@ -157,7 +166,6 @@
       width: 24px;
       height: 24px;
     }
-    }
 
     .worker-badge {
       background: rgba(255, 255, 255, 0.05);
@@ -190,24 +198,40 @@
     /* Stats */
     .stats-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      padding: 24px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      padding: 20px;
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 900px) {
+      .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        padding: 16px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .stats-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+        padding: 12px;
+      }
+    }
+
+    @media (max-width: 400px) {
       .stats-grid {
         grid-template-columns: 1fr;
-        padding: 20px;
-        gap: 16px;
+        gap: 8px;
+        padding: 10px;
       }
     }
 
     .stat-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 32px;
-      padding: 32px;
+      border-radius: 24px;
+      padding: 20px;
       text-align: center;
       position: relative;
       overflow: hidden;
@@ -216,25 +240,58 @@
     }
 
     .stat-card:hover {
-      transform: translateY(-5px);
+      transform: translateY(-3px);
       border-color: var(--primary);
-      box-shadow: 0 10px 30px rgba(0, 122, 173, 0.2);
+      box-shadow: 0 8px 20px rgba(0, 122, 173, 0.2);
     }
 
     .stat-card .val {
-      font-size: 40px;
+      font-size: 28px;
       font-weight: 800;
       color: var(--text);
       line-height: 1.1;
     }
 
     .stat-card .lbl {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--text-muted);
-      margin-top: 10px;
+      margin-top: 6px;
       text-transform: uppercase;
-      letter-spacing: 2px;
+      letter-spacing: 1.5px;
       font-weight: 800;
+    }
+
+    @media (max-width: 900px) {
+      .stat-card {
+        padding: 16px;
+        border-radius: 20px;
+      }
+
+      .stat-card .val {
+        font-size: 24px;
+      }
+
+      .stat-card .lbl {
+        font-size: 9px;
+        letter-spacing: 1px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .stat-card {
+        padding: 12px 8px;
+        border-radius: 16px;
+      }
+
+      .stat-card .val {
+        font-size: 18px;
+      }
+
+      .stat-card .lbl {
+        font-size: 8px;
+        letter-spacing: 0.5px;
+        margin-top: 4px;
+      }
     }
 
     /* Add Job Button */
@@ -253,9 +310,9 @@
       background: var(--primary);
       color: #fff;
       border: none;
-      border-radius: 20px;
-      padding: 22px;
-      font-size: 16px;
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 14px;
       font-weight: 800;
       cursor: pointer;
       transition: all 0.3s;
@@ -264,19 +321,27 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
-      box-shadow: 0 10px 30px rgba(0, 122, 173, 0.3);
+      gap: 10px;
+      box-shadow: 0 8px 25px rgba(0, 122, 173, 0.3);
       text-transform: uppercase;
     }
 
     .add-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 15px 40px rgba(0, 122, 173, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(0, 122, 173, 0.4);
       background: #006b99;
     }
 
     .add-btn:active {
       transform: scale(0.98);
+    }
+
+    @media (max-width: 600px) {
+      .add-btn {
+        padding: 14px;
+        font-size: 13px;
+        border-radius: 14px;
+      }
     }
 
     /* Jobs List */
@@ -861,6 +926,28 @@
     </div>
   </div>
 
+  <div class="filter-row"
+    style="display: flex; gap: 10px; padding: 0 20px 20px; align-items: flex-end; flex-wrap: wrap;">
+    <div class="field" style="margin-bottom: 0; flex: 1; min-width: 120px;">
+      <label style="font-size: 9px; letter-spacing: 1px;">From</label>
+      <input type="date" id="dateFrom" value="{{ from_date }}"
+        style="padding: 10px; border-radius: 12px; font-size: 13px; background: var(--card-bg);">
+    </div>
+    <div class="field" style="margin-bottom: 0; flex: 1; min-width: 120px;">
+      <label style="font-size: 9px; letter-spacing: 1px;">To</label>
+      <input type="date" id="dateTo" value="{{ to_date }}"
+        style="padding: 10px; border-radius: 12px; font-size: 13px; background: var(--card-bg);">
+    </div>
+    <div style="display: flex; gap: 8px; width: 100%; margin-top: 10px;">
+      <button class="add-btn"
+        style="padding: 12px; font-size: 12px; flex: 1; box-shadow: none; height: 44px; text-transform: none;"
+        onclick="applyDateFilter()">Filter</button>
+      <button class="logout-btn"
+        style="padding: 12px; font-size: 12px; flex: 1; height: 44px; background: rgba(0, 122, 173, 0.1); color: var(--primary); border-color: var(--primary);"
+        onclick="resetDateFilter()">Today</button>
+    </div>
+  </div>
+
   <div class="stats-grid">
     <div class="stat-card">
       <div class="val" id="statEarnings">{{ currency }}{{ "%.0f"|format(today_earnings) }}</div>
@@ -869,6 +956,11 @@
     <div class="stat-card">
       <div class="val" id="statJobs">{{ today_count }}</div>
       <div class="lbl">Jobs Done</div>
+    </div>
+    <div class="stat-card" style="border: 1px solid rgba(16,185,129,0.3); background: rgba(16,185,129,0.05);">
+      <div class="val" style="color: var(--success);" id="statSalary">{{ currency }}{{ "%.0f"|format(today_earnings *
+        commission / 100) }}</div>
+      <div class="lbl">Daily Salary ({{ commission }}%)</div>
     </div>
   </div>
 
@@ -1087,10 +1179,25 @@
   <div id="toast" class="toast"></div>
 
   <script>
+    function applyDateFilter() {
+      const from = document.getElementById('dateFrom').value;
+      const to = document.getElementById('dateTo').value;
+      window.location.href = `/worker?from=${from}&to=${to}`;
+    }
+
+    function resetDateFilter() {
+      window.location.href = '/worker';
+    }
+
     const CURRENCY = "{{ currency }}";
+    const COMMISSION = {{ commission }};
     let paymentMethod = 'cash';
     let totalEarnings = {{ today_earnings }};
     let totalJobs = {{ today_count }};
+
+    function updateSalary() {
+      document.getElementById('statSalary').textContent = CURRENCY + Math.round(totalEarnings * COMMISSION / 100);
+    }
 
     function openSettings() {
       document.getElementById('settingsModal').classList.add('show');
@@ -1305,6 +1412,7 @@
         totalJobs += 1;
         document.getElementById('statEarnings').textContent = CURRENCY + Math.round(totalEarnings);
         document.getElementById('statJobs').textContent = totalJobs;
+        updateSalary();
         addJobToList(result.job_id, data, sel.options[sel.selectedIndex].text);
         showToast('Job saved! ' + CURRENCY + Math.round(price));
       }
@@ -1388,6 +1496,7 @@
         totalJobs -= 1;
         document.getElementById('statEarnings').textContent = CURRENCY + Math.round(totalEarnings);
         document.getElementById('statJobs').textContent = totalJobs;
+        updateSalary();
         showToast('Job removed');
       } else {
         showToast(result.error || 'Cannot delete', true);
