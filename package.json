@@ -1,0 +1,72 @@
+{
+  "name": "barbershop-manager",
+  "version": "1.0.0",
+  "description": "Premium Barbershop Management System",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder",
+    "build:exe": "powershell -ExecutionPolicy Bypass -File build_exe.ps1",
+    "build:mac": "chmod +x build_mac.sh && ./build_mac.sh",
+    "build": "node -e \"const cmd = process.platform === 'win32' ? 'npm run build:exe' : 'npm run build:mac'; require('child_process').execSync(cmd, {stdio: 'inherit'})\""
+  },
+  "keywords": [],
+  "author": "Virtual Tech Solution",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^22.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "axios": "^1.13.6"
+  },
+  "build": {
+    "appId": "com.vts.barbershop",
+    "productName": "BarberShop Manager Pro",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!venv/**",
+      "!venv_win/**",
+      "!node_modules/electron/**",
+      "!.github/**"
+    ],
+    "extraResources": [
+      {
+        "from": "dist_python",
+        "to": "backend",
+        "filter": [
+          "**/*"
+        ]
+      },
+      "AlShahidLogo.jpeg"
+    ],
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.business",
+      "icon": "AlShahidLogo.jpeg",
+      "minimumSystemVersion": "10.13.6"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "AlShahidLogo.jpeg"
+    },
+    "dmg": {
+      "title": "BarberShop Manager Pro",
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    }
+  }
+}
